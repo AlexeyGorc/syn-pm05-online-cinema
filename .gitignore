@@ -1,0 +1,14 @@
+# Go
+backend/bin
+
+# Env
+.env
+backend/.env
+
+# Next.js
+frontend/.next/
+frontend/node_modules/
+
+# OS
+.idea
+.DS_STORE
