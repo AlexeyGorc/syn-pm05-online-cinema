@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import NavBar from '@/components/Navbar';
 
 interface Subscription {
     id: number;
@@ -32,10 +33,10 @@ const STATUSES: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-    new: '#6b7280',
+    new: '#a3a3a3',
     active: '#16a34a',
-    expired: '#dc2626',
-    cancelled: '#9ca3af',
+    expired: '#e50914',
+    cancelled: '#6b7280',
 };
 
 const PERIODS: { label: string; months: number }[] = [
@@ -56,6 +57,7 @@ export default function DashboardPage() {
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [activeSubscription, setActiveSubscription] = useState<Subscription | null>(null);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [form, setForm] = useState({
         plan: 'basic',
         payment_method: 'card',
@@ -85,6 +87,11 @@ export default function DashboardPage() {
         fetchSubscriptions();
     }, []);
 
+    const showSuccess = (msg: string) => {
+        setSuccess(msg);
+        setTimeout(() => setSuccess(''), 3000);
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.name === 'period' ? Number(e.target.value) : e.target.value;
         setForm({ ...form, [e.target.name]: value });
@@ -102,6 +109,7 @@ export default function DashboardPage() {
                     expires_at: addMonths(form.period),
                 }),
             });
+            showSuccess('Подписка успешно оформлена');
             setForm({ plan: 'basic', payment_method: 'card', period: 1 });
             fetchSubscriptions();
         } catch (err: unknown) {
@@ -117,6 +125,7 @@ export default function DashboardPage() {
                 method: 'PATCH',
                 body: JSON.stringify({ plan: upgradePlan }),
             });
+            showSuccess('Тариф успешно изменён');
             fetchSubscriptions();
         } catch (err: unknown) {
             if (err instanceof Error) setError(err.message);
@@ -129,132 +138,130 @@ export default function DashboardPage() {
         router.push('/login');
     };
 
-    const inputStyle: React.CSSProperties = {
-        border: '1px solid #ccc',
-        padding: '6px 10px',
-        display: 'block',
-        marginBottom: '12px',
-        width: '100%',
-        borderRadius: '4px',
-        color: '#000',
-        background: '#fff',
-        fontSize: '14px',
-    };
-
-    const labelStyle: React.CSSProperties = {
-        display: 'block',
-        marginBottom: '4px',
-        fontSize: '14px',
-        fontWeight: 500,
-    };
-
-    const buttonStyle: React.CSSProperties = {
-        padding: '8px 20px',
-        background: '#2563eb',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '14px',
-    };
-
     return (
-        <div style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                <h1>Мои подписки</h1>
-                <button style={{ ...buttonStyle, background: '#6b7280' }} onClick={handleLogout}>Выйти</button>
-            </div>
+        <div style={{ minHeight: '100vh' }}>
+            <NavBar />
 
-            <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '20px', marginBottom: '32px' }}>
-                {activeSubscription ? (
-                    <>
-                        <h2 style={{ marginBottom: '16px' }}>Апгрейд тарифа</h2>
-                        <p style={{ marginBottom: '16px', fontSize: '14px', color: '#6b7280' }}>
-                            Текущий тариф: <strong>{PLANS[activeSubscription.plan]}</strong>
-                        </p>
-                        <form onSubmit={handleUpgrade}>
-                            <div>
-                                <label style={labelStyle}>Новый тариф</label>
-                                <select
-                                    value={upgradePlan}
-                                    onChange={e => setUpgradePlan(e.target.value)}
-                                    style={inputStyle}
-                                >
-                                    {Object.entries(PLANS).map(([value, label]) => (
-                                        <option key={value} value={value}>{label}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            {error && <p style={{ color: 'red', fontSize: '14px' }}>{error}</p>}
-                            <button style={buttonStyle} type="submit">Сменить тариф</button>
-                        </form>
-                    </>
+            <div className="container" style={{ padding: '32px 16px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px' }}>
+                    Мои подписки
+                </h1>
+
+                {/* Toast уведомление */}
+                {success && (
+                    <div style={{
+                        position: 'fixed',
+                        bottom: '24px',
+                        right: '24px',
+                        background: '#16a34a',
+                        color: '#fff',
+                        padding: '12px 20px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        zIndex: 1000,
+                        animation: 'fadeIn 0.3s ease',
+                    }}>
+                        {success}
+                    </div>
+                )}
+
+                {/* Форма */}
+                <div className="card" style={{ marginBottom: '32px', maxWidth: '480px' }}>
+                    {activeSubscription ? (
+                        <>
+                            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
+                                Сменить тариф
+                            </h2>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>
+                                Текущий тариф: <strong style={{ color: 'var(--text)' }}>{PLANS[activeSubscription.plan]}</strong>
+                            </p>
+                            <form onSubmit={handleUpgrade}>
+                                <div className="form-group">
+                                    <label>Новый тариф</label>
+                                    <select value={upgradePlan} onChange={e => setUpgradePlan(e.target.value)}>
+                                        {Object.entries(PLANS).map(([value, label]) => (
+                                            <option key={value} value={value}>{label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {error && <p className="error" style={{ marginBottom: '12px' }}>{error}</p>}
+                                <button type="submit">Сменить тариф</button>
+                            </form>
+                        </>
+                    ) : (
+                        <>
+                            <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
+                                Оформить подписку
+                            </h2>
+                            <form onSubmit={handleSubmit}>
+                                <div className="form-group">
+                                    <label>Тариф</label>
+                                    <select name="plan" value={form.plan} onChange={handleChange}>
+                                        {Object.entries(PLANS).map(([value, label]) => (
+                                            <option key={value} value={value}>{label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Способ оплаты</label>
+                                    <select name="payment_method" value={form.payment_method} onChange={handleChange}>
+                                        {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
+                                            <option key={value} value={value}>{label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Период</label>
+                                    <select name="period" value={form.period} onChange={handleChange}>
+                                        {PERIODS.map(({ label, months }) => (
+                                            <option key={months} value={months}>{label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {error && <p className="error" style={{ marginBottom: '12px' }}>{error}</p>}
+                                <button type="submit">Оформить подписку</button>
+                            </form>
+                        </>
+                    )}
+                </div>
+
+                {/* Таблица */}
+                <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px' }}>
+                    История подписок
+                </h2>
+                {subscriptions.length === 0 ? (
+                    <p style={{ color: 'var(--text-muted)' }}>Подписок пока нет</p>
                 ) : (
-                    <>
-                        <h2 style={{ marginBottom: '16px' }}>Оформить подписку</h2>
-                        <form onSubmit={handleSubmit}>
-                            <div>
-                                <label style={labelStyle}>Тариф</label>
-                                <select name="plan" value={form.plan} onChange={handleChange} style={inputStyle}>
-                                    {Object.entries(PLANS).map(([value, label]) => (
-                                        <option key={value} value={value}>{label}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label style={labelStyle}>Способ оплаты</label>
-                                <select name="payment_method" value={form.payment_method} onChange={handleChange} style={inputStyle}>
-                                    {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
-                                        <option key={value} value={value}>{label}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label style={labelStyle}>Период</label>
-                                <select name="period" value={form.period} onChange={handleChange} style={inputStyle}>
-                                    {PERIODS.map(({ label, months }) => (
-                                        <option key={months} value={months}>{label}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            {error && <p style={{ color: 'red', fontSize: '14px' }}>{error}</p>}
-                            <button style={buttonStyle} type="submit">Оформить подписку</button>
-                        </form>
-                    </>
+                    <div className="card" style={{ padding: 0, overflow: 'auto' }}>
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Тариф</th>
+                                <th>Оплата</th>
+                                <th>Статус</th>
+                                <th style={{ whiteSpace: 'nowrap' }}>Окончание</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {subscriptions.map((sub) => (
+                                <tr key={sub.id}>
+                                    <td>{PLANS[sub.plan] || sub.plan}</td>
+                                    <td>{PAYMENT_METHODS[sub.payment_method] || sub.payment_method}</td>
+                                    <td>
+            <span style={{ color: STATUS_COLORS[sub.status], fontWeight: 500 }}>
+              {STATUSES[sub.status] || sub.status}
+            </span>
+                                    </td>
+                                    <td style={{ whiteSpace: 'nowrap' }}>
+                                        {new Date(sub.expires_at).toLocaleDateString('ru-RU')}
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
-
-            <h2 style={{ marginBottom: '16px' }}>История подписок</h2>
-            {subscriptions.length === 0 ? (
-                <p style={{ color: '#6b7280' }}>Подписок пока нет</p>
-            ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                    <tr style={{ borderBottom: '2px solid #e5e7eb', textAlign: 'left' }}>
-                        <th style={{ padding: '8px' }}>Тариф</th>
-                        <th style={{ padding: '8px' }}>Оплата</th>
-                        <th style={{ padding: '8px' }}>Статус</th>
-                        <th style={{ padding: '8px' }}>Начало</th>
-                        <th style={{ padding: '8px' }}>Окончание</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {subscriptions.map((sub) => (
-                        <tr key={sub.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                            <td style={{ padding: '8px' }}>{PLANS[sub.plan] || sub.plan}</td>
-                            <td style={{ padding: '8px' }}>{PAYMENT_METHODS[sub.payment_method] || sub.payment_method}</td>
-                            <td style={{ padding: '8px' }}>
-                  <span style={{ color: STATUS_COLORS[sub.status] || '#000', fontWeight: 500 }}>
-                    {STATUSES[sub.status] || sub.status}
-                  </span>
-                            </td>
-                            <td style={{ padding: '8px' }}>{new Date(sub.started_at).toLocaleDateString('ru-RU')}</td>
-                            <td style={{ padding: '8px' }}>{new Date(sub.expires_at).toLocaleDateString('ru-RU')}</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            )}
         </div>
     );
 }

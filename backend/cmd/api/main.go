@@ -33,6 +33,8 @@ func main() {
 		c.Next()
 	})
 
+	r.GET("/api/movies", h.GetMovies)
+
 	// Auth
 	auth := r.Group("/api/auth")
 	{
