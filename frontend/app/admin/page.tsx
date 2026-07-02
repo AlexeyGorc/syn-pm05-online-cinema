@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import Navbar from '@/components/Navbar';
 
 interface Subscription {
     id: number;
@@ -35,22 +36,28 @@ const STATUSES: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-    new: '#6b7280',
+    new: '#a3a3a3',
     active: '#16a34a',
-    expired: '#dc2626',
-    cancelled: '#9ca3af',
+    expired: '#e50914',
+    cancelled: '#6b7280',
 };
 
 export default function AdminPage() {
     const router = useRouter();
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+    const [filtered, setFiltered] = useState<Subscription[]>([]);
+    const [filterStatus, setFilterStatus] = useState('all');
     const [error, setError] = useState('');
-    const [successId, setSuccessId] = useState<number | null>(null);
+    const [success, setSuccess] = useState('');
+    const [page, setPage] = useState(1);
+    const PER_PAGE = 10;
 
     const fetchSubscriptions = async () => {
         try {
             const data = await apiFetch('/api/admin/subscriptions');
-            setSubscriptions(data || []);
+            const list = data || [];
+            setSubscriptions(list);
+            setFiltered(list);
         } catch (err: unknown) {
             if (err instanceof Error) setError(err.message);
         }
@@ -65,6 +72,20 @@ export default function AdminPage() {
         fetchSubscriptions();
     }, []);
 
+    useEffect(() => {
+        if (filterStatus === 'all') {
+            setFiltered(subscriptions);
+        } else {
+            setFiltered(subscriptions.filter(s => s.status === filterStatus));
+        }
+        setPage(1);
+    }, [filterStatus, subscriptions]);
+
+    const showSuccess = (msg: string) => {
+        setSuccess(msg);
+        setTimeout(() => setSuccess(''), 3000);
+    };
+
     const handleStatusChange = async (id: number, status: string) => {
         setError('');
         try {
@@ -72,106 +93,153 @@ export default function AdminPage() {
                 method: 'PATCH',
                 body: JSON.stringify({ status }),
             });
-            setSuccessId(id);
-            setTimeout(() => setSuccessId(null), 2000);
+            showSuccess('Статус обновлён');
             fetchSubscriptions();
         } catch (err: unknown) {
             if (err instanceof Error) setError(err.message);
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        router.push('/login');
-    };
-
-    const buttonStyle: React.CSSProperties = {
-        padding: '8px 20px',
-        background: '#2563eb',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '14px',
-    };
-
-    const selectStyle: React.CSSProperties = {
-        border: '1px solid #ccc',
-        padding: '4px 8px',
-        borderRadius: '4px',
-        color: '#000',
-        background: '#fff',
-        fontSize: '14px',
-        marginRight: '8px',
-    };
+    const totalPages = Math.ceil(filtered.length / PER_PAGE);
+    const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
     return (
-        <div style={{ padding: '40px 20px', maxWidth: '1000px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                <h1>Панель администратора</h1>
-                <button style={{ ...buttonStyle, background: '#6b7280' }} onClick={handleLogout}>Выйти</button>
-            </div>
+        <div style={{ minHeight: '100vh' }}>
+            <Navbar />
 
-            {error && <p style={{ color: 'red', fontSize: '14px', marginBottom: '16px' }}>{error}</p>}
+            {/* Toast */}
+            {success && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '24px',
+                    right: '24px',
+                    background: '#16a34a',
+                    color: '#fff',
+                    padding: '12px 20px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    zIndex: 1000,
+                }}>
+                    {success}
+                </div>
+            )}
 
-            <h2 style={{ marginBottom: '16px' }}>Все подписки</h2>
+            <div className="container" style={{ padding: '32px 16px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px' }}>
+                    Панель администратора
+                </h1>
 
-            {subscriptions.length === 0 ? (
-                <p style={{ color: '#6b7280' }}>Подписок пока нет</p>
-            ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                    <tr style={{ borderBottom: '2px solid #e5e7eb', textAlign: 'left' }}>
-                        <th style={{ padding: '8px' }}>ID</th>
-                        <th style={{ padding: '8px' }}>Логин</th>
-                        <th style={{ padding: '8px' }}>Email</th>
-                        <th style={{ padding: '8px' }}>Тариф</th>
-                        <th style={{ padding: '8px' }}>Оплата</th>
-                        <th style={{ padding: '8px' }}>Статус</th>
-                        <th style={{ padding: '8px' }}>Начало</th>
-                        <th style={{ padding: '8px' }}>Окончание</th>
-                        <th style={{ padding: '8px' }}>Действие</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {subscriptions.map((sub) => (
-                        <tr
-                            key={sub.id}
+                {error && <p className="error" style={{ marginBottom: '16px' }}>{error}</p>}
+
+                {/* Фильтр */}
+                <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <label style={{ margin: 0, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                        Фильтр по статусу:
+                    </label>
+                    <select
+                        value={filterStatus}
+                        onChange={e => setFilterStatus(e.target.value)}
+                        style={{ maxWidth: '200px' }}
+                    >
+                        <option value="all">Все</option>
+                        {Object.entries(STATUSES).map(([value, label]) => (
+                            <option key={value} value={value}>{label}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Таблица */}
+                {paginated.length === 0 ? (
+                    <p style={{ color: 'var(--text-muted)' }}>Подписок не найдено</p>
+                ) : (
+                    <div className="card" style={{ padding: 0, overflow: 'auto' }}>
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Логин</th>
+                                <th>Email</th>
+                                <th>Тариф</th>
+                                <th>Оплата</th>
+                                <th>Статус</th>
+                                <th>Начало</th>
+                                <th>Окончание</th>
+                                <th>Действие</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {paginated.map((sub) => (
+                                <tr key={sub.id}>
+                                    <td>{sub.id}</td>
+                                    <td>{sub.login}</td>
+                                    <td>{sub.email}</td>
+                                    <td>{PLANS[sub.plan] || sub.plan}</td>
+                                    <td>{PAYMENT_METHODS[sub.payment_method] || sub.payment_method}</td>
+                                    <td>
+                      <span style={{ color: STATUS_COLORS[sub.status], fontWeight: 500 }}>
+                        {STATUSES[sub.status] || sub.status}
+                      </span>
+                                    </td>
+                                    <td>{new Date(sub.started_at).toLocaleDateString('ru-RU')}</td>
+                                    <td>{new Date(sub.expires_at).toLocaleDateString('ru-RU')}</td>
+                                    <td>
+                                        <select
+                                            value={sub.status}
+                                            onChange={e => handleStatusChange(sub.id, e.target.value)}
+                                            style={{ width: '130px' }}
+                                        >
+                                            {Object.entries(STATUSES).map(([value, label]) => (
+                                                <option key={value} value={value}>{label}</option>
+                                            ))}
+                                        </select>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {/* Пагинация */}
+                {totalPages > 1 && (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginTop: '16px',
+                    }}>
+                        <button
+                            className="btn-secondary"
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
                             style={{
-                                borderBottom: '1px solid #e5e7eb',
-                                background: successId === sub.id ? '#f0fdf4' : 'transparent',
-                                transition: 'background 0.3s',
+                                width: 'auto',
+                                padding: '6px 14px',
+                                opacity: page === 1 ? 0.4 : 1,
+                                cursor: page === 1 ? 'not-allowed' : 'pointer',
                             }}
                         >
-                            <td style={{ padding: '8px' }}>{sub.id}</td>
-                            <td style={{ padding: '8px' }}>{sub.login}</td>
-                            <td style={{ padding: '8px' }}>{sub.email}</td>
-                            <td style={{ padding: '8px' }}>{PLANS[sub.plan] || sub.plan}</td>
-                            <td style={{ padding: '8px' }}>{PAYMENT_METHODS[sub.payment_method] || sub.payment_method}</td>
-                            <td style={{ padding: '8px' }}>
-                  <span style={{ color: STATUS_COLORS[sub.status] || '#000', fontWeight: 500 }}>
-                    {STATUSES[sub.status] || sub.status}
-                  </span>
-                            </td>
-                            <td style={{ padding: '8px' }}>{new Date(sub.started_at).toLocaleDateString('ru-RU')}</td>
-                            <td style={{ padding: '8px' }}>{new Date(sub.expires_at).toLocaleDateString('ru-RU')}</td>
-                            <td style={{ padding: '8px' }}>
-                                <select
-                                    style={selectStyle}
-                                    value={sub.status}
-                                    onChange={e => handleStatusChange(sub.id, e.target.value)}
-                                >
-                                    {Object.entries(STATUSES).map(([value, label]) => (
-                                        <option key={value} value={value}>{label}</option>
-                                    ))}
-                                </select>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            )}
+                            ←
+                        </button>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+              {page} / {totalPages}
+            </span>
+                        <button
+                            className="btn-secondary"
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            disabled={page === totalPages}
+                            style={{
+                                width: 'auto',
+                                padding: '6px 14px',
+                                opacity: page === totalPages ? 0.4 : 1,
+                                cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                            }}
+                        >
+                            →
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

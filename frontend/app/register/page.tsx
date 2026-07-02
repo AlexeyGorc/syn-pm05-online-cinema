@@ -65,71 +65,97 @@ export default function RegisterPage() {
         }
     };
 
-    const inputStyle: React.CSSProperties = {
-        border: '1px solid #ccc',
-        padding: '6px 10px',
-        display: 'block',
-        marginBottom: '12px',
-        width: '100%',
-        borderRadius: '4px',
-        color: '#000',
-        background: '#fff',
-        fontSize: '14px',
-    };
-
-    const labelStyle: React.CSSProperties = {
-        display: 'block',
-        marginBottom: '4px',
-        fontSize: '14px',
-        fontWeight: 500,
-    };
-
-    const buttonStyle: React.CSSProperties = {
-        padding: '8px 20px',
-        background: '#2563eb',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '14px',
-        marginTop: '8px',
-        width: '100%',
-    };
-
     return (
-        <div style={{ padding: '40px 20px', maxWidth: '400px', margin: '0 auto' }}>
-            <h1 style={{ marginBottom: '24px' }}>Регистрация</h1>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label style={labelStyle}>Логин</label>
-                    <input style={inputStyle} name="login" value={form.login} onChange={handleChange} required />
-                </div>
-                <div>
-                    <label style={labelStyle}>Пароль</label>
-                    <input style={inputStyle} name="password" type="password" value={form.password} onChange={handleChange} required />
-                </div>
-                <div>
-                    <label style={labelStyle}>Подтверждение пароля</label>
-                    <input style={inputStyle} name="confirm_password" type="password" value={form.confirm_password} onChange={handleChange} required />
-                </div>
-                <div>
-                    <label style={labelStyle}>ФИО</label>
-                    <input style={inputStyle} name="full_name" value={form.full_name} onChange={handleChange} required />
-                </div>
-                <div>
-                    <label style={labelStyle}>Телефон</label>
-                    <input style={inputStyle} name="phone" value={form.phone} onChange={handlePhoneChange} placeholder="8(XXX)XXX-XX-XX" required />
-                </div>
-                <div>
-                    <label style={labelStyle}>Email</label>
-                    <input style={inputStyle} name="email" type="email" value={form.email} onChange={handleChange} required />
-                </div>
-                {error && <p style={{ color: 'red', fontSize: '14px' }}>{error}</p>}
-                <button style={buttonStyle} type="submit">Зарегистрироваться</button>
-            </form>
-            <p style={{ marginTop: '16px', fontSize: '14px' }}>
-                Уже есть аккаунт? <a href="/login" style={{ color: '#2563eb' }}>Войти</a>
-            </p>
+        <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+        }}>
+            <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>
+                    Регистрация
+                </h1>
+                <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px' }}>
+                    Создайте аккаунт
+                </p>
+
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label>Логин</label>
+                        <input
+                            name="login"
+                            value={form.login}
+                            onChange={handleChange}
+                            placeholder="Минимум 6 символов, латиница и цифры"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Пароль</label>
+                        <input
+                            name="password"
+                            type="password"
+                            value={form.password}
+                            onChange={handleChange}
+                            placeholder="Минимум 8 символов"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Подтверждение пароля</label>
+                        <input
+                            name="confirm_password"
+                            type="password"
+                            value={form.confirm_password}
+                            onChange={handleChange}
+                            placeholder="Повторите пароль"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>ФИО</label>
+                        <input
+                            name="full_name"
+                            value={form.full_name}
+                            onChange={handleChange}
+                            placeholder="Иванов Иван Иванович"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Телефон</label>
+                        <input
+                            name="phone"
+                            value={form.phone}
+                            onChange={handlePhoneChange}
+                            placeholder="8(XXX)XXX-XX-XX"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Email</label>
+                        <input
+                            name="email"
+                            type="email"
+                            value={form.email}
+                            onChange={handleChange}
+                            placeholder="example@mail.ru"
+                            required
+                        />
+                    </div>
+
+                    {error && <p className="error" style={{ marginBottom: '16px' }}>{error}</p>}
+
+                    <button type="submit">Зарегистрироваться</button>
+                </form>
+
+                <p style={{ marginTop: '20px', fontSize: '14px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                    Уже есть аккаунт?{' '}
+                    <a href="/login">Войти</a>
+                </p>
+            </div>
         </div>
     );
 }

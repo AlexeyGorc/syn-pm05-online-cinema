@@ -33,55 +33,55 @@ export default function LoginPage() {
         }
     };
 
-    const inputStyle: React.CSSProperties = {
-        border: '1px solid #ccc',
-        padding: '6px 10px',
-        display: 'block',
-        marginBottom: '12px',
-        width: '100%',
-        borderRadius: '4px',
-        color: '#000',
-        background: '#fff',
-        fontSize: '14px',
-    };
-
-    const labelStyle: React.CSSProperties = {
-        display: 'block',
-        marginBottom: '4px',
-        fontSize: '14px',
-        fontWeight: 500,
-    };
-
-    const buttonStyle: React.CSSProperties = {
-        padding: '8px 20px',
-        background: '#2563eb',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '14px',
-        marginTop: '8px',
-        width: '100%',
-    };
-
     return (
-        <div style={{ padding: '40px 20px', maxWidth: '400px', margin: '0 auto' }}>
-            <h1 style={{ marginBottom: '24px' }}>Вход</h1>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label style={labelStyle}>Логин</label>
-                    <input style={inputStyle} name="login" value={form.login} onChange={handleChange} required />
-                </div>
-                <div>
-                    <label style={labelStyle}>Пароль</label>
-                    <input style={inputStyle} name="password" type="password" value={form.password} onChange={handleChange} required />
-                </div>
-                {error && <p style={{ color: 'red', fontSize: '14px' }}>{error}</p>}
-                <button style={buttonStyle} type="submit">Войти</button>
-            </form>
-            <p style={{ marginTop: '16px', fontSize: '14px' }}>
-                Нет аккаунта? <a href="/register" style={{ color: '#2563eb' }}>Зарегистрироваться</a>
-            </p>
+        <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+        }}>
+            <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>
+                    Вход
+                </h1>
+                <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px' }}>
+                    Войдите в свой аккаунт
+                </p>
+
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label>Логин</label>
+                        <input
+                            name="login"
+                            value={form.login}
+                            onChange={handleChange}
+                            placeholder="Введите логин"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Пароль</label>
+                        <input
+                            name="password"
+                            type="password"
+                            value={form.password}
+                            onChange={handleChange}
+                            placeholder="Введите пароль"
+                            required
+                        />
+                    </div>
+
+                    {error && <p className="error" style={{ marginBottom: '16px' }}>{error}</p>}
+
+                    <button type="submit">Войти</button>
+                </form>
+
+                <p style={{ marginTop: '20px', fontSize: '14px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                    Нет аккаунта?{' '}
+                    <a href="/register">Зарегистрироваться</a>
+                </p>
+            </div>
         </div>
     );
 }
