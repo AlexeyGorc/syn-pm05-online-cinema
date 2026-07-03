@@ -152,6 +152,105 @@
     color: #ffffff;
   }
 
+  /* Плавные переходы для интерактивных элементов */
+  a {
+    transition: color 0.2s ease;
+  }
+
+  button {
+    transition: background-color 0.2s ease, transform 0.1s ease, opacity 0.2s ease;
+  }
+
+  button:active {
+    transform: scale(0.97);
+  }
+
+  input, select {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  input:focus, select:focus {
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.15);
+  }
+
+  /* Карточка фильма — hover */
+  .movie-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+  }
+
+  .movie-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Toast анимация */
+  @keyframes toastIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .toast {
+    animation: toastIn 0.3s ease;
+  }
+
+  /* Плавное появление страниц */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .page-enter {
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* Skeleton loader */
+  @keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+
+  .skeleton {
+    background: linear-gradient(
+            90deg,
+            var(--surface) 25%,
+            #2a2a2a 50%,
+            var(--surface) 75%
+    );
+    background-size: 400px 100%;
+    animation: shimmer 1.4s infinite linear;
+    border-radius: 4px;
+  }
+
+  /* Спиннер загрузки */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto;
+  }
+
+  /* prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   @media (max-width: 390px) {
     .container {
       padding: 0 12px;
@@ -167,6 +266,10 @@
 
     th, td {
       padding: 8px;
+    }
+    
+    .nav-catalog {
+      display: none;
     }
   }
 }

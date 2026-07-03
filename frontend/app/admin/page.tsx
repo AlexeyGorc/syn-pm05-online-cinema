@@ -109,7 +109,7 @@ export default function AdminPage() {
 
             {/* Toast */}
             {success && (
-                <div style={{
+                <div className="toast" style={{
                     position: 'fixed',
                     bottom: '24px',
                     right: '24px',

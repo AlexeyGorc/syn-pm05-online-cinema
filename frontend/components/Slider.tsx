@@ -18,6 +18,13 @@ export default function Slider() {
     const [current, setCurrent] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
 
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        setIsLoggedIn(!!token);
+    }, []);
+
     useEffect(() => {
         const check = () => setIsMobile(window.innerWidth <= 500);
         check();
@@ -150,18 +157,18 @@ export default function Slider() {
                             }}>
                                 {movie.description}
                             </p>
-                            <a href="/register" style={{
+                            <a href={isLoggedIn ? '/movies' : '/register'} style={{
                                 display: 'inline-block',
-                                marginTop: '12px',
-                                padding: '8px 20px',
+                                marginTop: '20px',
+                                padding: '10px 24px',
                                 background: 'var(--accent)',
                                 color: '#fff',
                                 borderRadius: '4px',
                                 fontWeight: 600,
-                                fontSize: '13px',
+                                fontSize: '14px',
                                 textDecoration: 'none',
                             }}>
-                                Смотреть
+                                {isLoggedIn ? 'Смотреть' : 'Начать просмотр'}
                             </a>
                         </div>
                     </div>
@@ -212,7 +219,7 @@ export default function Slider() {
                             <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: '1.6' }}>
                                 {movie.description}
                             </p>
-                            <a href="/register" style={{
+                            <a href={isLoggedIn ? '/movies' : '/register'} style={{
                                 display: 'inline-block',
                                 marginTop: '20px',
                                 padding: '10px 24px',
@@ -223,7 +230,7 @@ export default function Slider() {
                                 fontSize: '14px',
                                 textDecoration: 'none',
                             }}>
-                                Смотреть
+                                {isLoggedIn ? 'Смотреть' : 'Начать просмотр'}
                             </a>
                         </div>
                     </div>

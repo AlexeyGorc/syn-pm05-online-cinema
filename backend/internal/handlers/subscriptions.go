@@ -139,6 +139,7 @@ func (h *Handler) GetAllSubscriptions(c *gin.Context) {
 
 func (h *Handler) UpdateSubscriptionStatus(c *gin.Context) {
 	id := c.Param("id")
+	adminID, _ := c.Get("user_id")
 
 	var body struct {
 		Status string `json:"status"`
@@ -154,14 +155,42 @@ func (h *Handler) UpdateSubscriptionStatus(c *gin.Context) {
 		return
 	}
 
-	_, err := h.DB.Exec(
-		`UPDATE subscriptions SET status = $1 WHERE id = $2`,
-		body.Status, id,
-	)
+	// Получаем текущий статус
+	var oldStatus string
+	err := h.DB.Get(&oldStatus, `SELECT status FROM subscriptions WHERE id = $1`, id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "подписка не найдена"})
+		return
+	}
+
+	// Обновляем статус
+	_, err = h.DB.Exec(`UPDATE subscriptions SET status = $1 WHERE id = $2`, body.Status, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "ошибка сервера"})
 		return
 	}
 
+	// Пишем лог
+	h.DB.Exec(
+		`INSERT INTO subscription_logs (subscription_id, old_status, new_status, changed_by)
+		 VALUES ($1, $2, $3, $4)`,
+		id, oldStatus, body.Status, adminID,
+	)
+
 	c.JSON(http.StatusOK, gin.H{"message": "статус обновлён"})
+}
+
+func (h *Handler) GetActiveSubscription(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+
+	var sub models.Subscription
+	err := h.DB.Get(&sub,
+		`SELECT * FROM subscriptions WHERE user_id = $1 AND status IN ('new', 'active') LIMIT 1`,
+		userID,
+	)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"subscription": nil})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"subscription": sub})
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 
@@ -64,6 +64,14 @@ export default function RegisterPage() {
             if (err instanceof Error) setError(err.message);
         }
     };
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const role = Number(localStorage.getItem('role'));
+        if (token) {
+            router.push(role === 1 ? '/admin' : '/dashboard');
+        }
+    }, []);
 
     return (
         <div style={{
