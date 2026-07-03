@@ -34,6 +34,8 @@ func main() {
 	})
 
 	r.GET("/api/movies", h.GetMovies)
+	r.GET("/api/movies/:id", h.GetMovie)
+	r.GET("/api/genres", h.GetGenres)
 
 	// Auth
 	auth := r.Group("/api/auth")
@@ -46,6 +48,7 @@ func main() {
 	user := r.Group("/api/user")
 	user.Use(middleware.AuthRequired(cfg.JWTSecret))
 	{
+		user.GET("/subscription/active", h.GetActiveSubscription)
 		user.GET("/subscriptions", h.GetMySubscriptions)
 		user.POST("/subscriptions", h.CreateSubscription)
 		user.PATCH("/subscriptions/upgrade", h.UpgradeSubscription)

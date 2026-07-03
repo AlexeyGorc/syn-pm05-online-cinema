@@ -149,7 +149,7 @@ export default function DashboardPage() {
 
                 {/* Toast уведомление */}
                 {success && (
-                    <div style={{
+                    <div className="toast" style={{
                         position: 'fixed',
                         bottom: '24px',
                         right: '24px',
